@@ -162,7 +162,7 @@ def main():
                                                         random_state=random_state + category)
     scaler = StandardScaler().fit(X_train.values)
     X_scaled = scaler.transform(X_train.values)
-    
+
     # KFold
     # kf = KFold(n_splits=2)
     # for X_train, X_test in kf.split(category_train_data.values):
@@ -192,7 +192,7 @@ def main():
         # train D
         with tf.GradientTape() as tape:
           d_loss, gp = d_loss_fn(generator, discriminator,
-                                batch_z, batch_x, is_training)
+                                 batch_z, batch_x, is_training)
         grads = tape.gradient(d_loss, discriminator.trainable_variables)
         d_optimizer.apply_gradients(
           zip(grads, discriminator.trainable_variables))
@@ -211,8 +211,13 @@ def main():
         z = tf.random.normal([250, z_dim])
         fake_data = generator(z, training=False)
         fake_data = scaler.inverse_transform(fake_data)
-        pd.DataFrame(fake_data).to_csv(os.path.join(
-          ROOT_DIR, 'dataset', f'category{category}_dataset.csv'))
+        x = pd.DataFrame(fake_data, columns=[
+                         'A', 'P', 'length of kernel', 'width of kernel', 'asymmetry coefficient', 'length of kernel groove'])
+        y = pd.DataFrame(np.full(250, category, dtype=np.int),
+                         columns=['Column8'])
+        fake_data = x.merge(y, how='inner', left_index=True, right_index=True)
+        fake_data.to_csv(os.path.join(
+          ROOT_DIR, 'dataset', f'category{category}_dataset.csv'), index=False)
 
 
 main()
